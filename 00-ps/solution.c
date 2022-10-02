@@ -9,6 +9,8 @@
 #include <fcntl.h>
 #include <linux/limits.h>
 
+#define ARG_MAX 131072 //like in linux/limits.h
+
 char* path_to_proc = "/proc";
 
 void ps(void)
@@ -45,13 +47,13 @@ void ps(void)
 				int count_envp = 1;
 				int len_envp = 0;
 				envp = (char**) malloc (1 * sizeof(char*));
-				envp[0] = (char*) malloc (10000);
+				envp[0] = (char*) malloc (ARG_MAX);
 
 				char** argv;
 				int count_argv = 1;
 				int len_argv = 0;
 				argv = (char**) malloc (1 * sizeof(char*));
-				argv[0] = (char*) malloc (10000);
+				argv[0] = (char*) malloc (ARG_MAX);
 
 				sprintf(path, "%s/%s/exe", path_to_proc, dp->d_name);
 				ssize_t len = readlink(path, exec, PATH_MAX);
@@ -79,7 +81,7 @@ void ps(void)
 						++count_envp;
 						len_envp = 0;
 						envp = (char**) realloc (envp, count_envp * sizeof(char*));
-						envp[count_envp-1] = (char*) malloc (10000);
+						envp[count_envp-1] = (char*) malloc (ARG_MAX);
 					}
 				}
 				count_envp -= 1;
@@ -105,7 +107,7 @@ void ps(void)
 						count_argv++;
 						len_argv = 0;
 						argv = (char**) realloc (argv, count_argv * sizeof(char*));
-						argv[count_argv-1] = (char*) malloc (10000);
+						argv[count_argv-1] = (char*) malloc (ARG_MAX);
 					}
 				}
 				count_argv -= 1;
