@@ -42,58 +42,62 @@ void ps(void)
 				char exec[PATH_MAX];
 				char buff;
 				char** envp;
+				int count_envp = 1;
+				int len_envp = 0;
+				envp = (char**) malloc (1 * sizeof(char*));
+				envp[0] = (char*) malloc (10000);
+
 				char** argv;
+				int count_argv = 1;
+				int len_argv = 0;
+				argv = (char**) malloc (1 * sizeof(char*));
+				argv[0] = (char*) malloc (10000);
 
 				sprintf(path, "%s/%s/exe", path_to_proc, dp->d_name);
 				ssize_t len = readlink(path, exec, PATH_MAX);
 				if(len == -1){
 					report_error(path, errno);
-					continue;
+					goto free_zone;//continue;
 				}
+				exec[len] = '\0';
 
 				sprintf(path, "%s/%s/environ", path_to_proc, dp->d_name);
 				int env_fd = open(path, O_RDONLY);
 				if(env_fd == -1){
 					report_error(path, errno);
-					continue;
+					goto free_zone;//continue;
 				}
-				int count_envp = 1;
-				int len_envp = 0;
-				envp = (char**) malloc (1 * sizeof(char*));
-				envp[0] = (char*) malloc (10000);
 				while ( (len = read(env_fd, &buff, 1)) != 0){
 					if(len == -1){
 						report_error(path, errno);
 						close(env_fd);
-						continue;
+						goto free_zone;//continue;
 					}
 					envp[count_envp-1][len_envp] = buff;
 					len_envp += 1;
 					if(buff == '\0'){
-						count_envp++;
+						++count_envp;
 						len_envp = 0;
 						envp = (char**) realloc (envp, count_envp * sizeof(char*));
 						envp[count_envp-1] = (char*) malloc (10000);
 					}
 				}
-				envp[count_envp-1] = NULL;
+				count_envp -= 1;
+				free(envp[count_envp]);
+				envp[count_envp] = NULL;
 				close(env_fd);
 	
 				sprintf(path, "%s/%s/cmdline", path_to_proc, dp->d_name);
 				int argv_fd = open(path, O_RDONLY);
 				if(argv_fd == -1){
 					report_error(path, errno);
-					continue;
+					goto free_zone;//continue;
 				}
-				int count_argv = 1;
-				int len_argv = 0;
-				argv = (char**) malloc (1 * sizeof(char*));
-				argv[0] = (char*) malloc (10000);
 				while ( (len = read(argv_fd, &buff, 1)) != 0){
 					if(len == -1){
 						report_error(path, errno);
 						close(argv_fd);
-						continue;
+						goto free_zone;//continue;
 					}
 					argv[count_argv-1][len_argv] = buff;
 					len_argv += 1;
@@ -104,11 +108,14 @@ void ps(void)
 						argv[count_argv-1] = (char*) malloc (10000);
 					}
 				}
-				argv[count_argv-1] = NULL;
+				count_argv -= 1;
+				free(argv[count_argv]);
+				argv[count_argv] = NULL;
 				close(argv_fd);
 
 				report_process(pid, exec, argv, envp);
 
+				free_zone:
 				for(int i = 0; i < count_envp; i++){
 					free(envp[i]);
 				}
