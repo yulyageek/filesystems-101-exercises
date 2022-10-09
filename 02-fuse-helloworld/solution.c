@@ -1,8 +1,6 @@
 #define FUSE_USE_VERSION 31
 
 #include <solution.h>
-#include <sys/types.h>
-#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -40,7 +38,8 @@ static int hello_read(const char *path, char *buf, size_t size, off_t offset, st
 {
 	if(strcmp(path+1, filename) != 0)
                  return -ENOENT;
-	pid_t pid = getpid();
+	struct fuse_context* fc = fuse_get_context();
+	pid_t pid = fc->pid;
         size_t len = snprintf(NULL, 0, "Hello, %d\n", pid);
         (void) fi;
 	char* content = (char*) malloc (len);
