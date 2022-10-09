@@ -26,7 +26,7 @@ static int hello_getattr(const char *path, struct stat *stbuf,
         	stbuf->st_mode = S_IFDIR;
 		return 0;
 	} 
-	if(strcmp(path, "/hello") == 0){
+	if(strcmp(path+1, filename) == 0 && *path == '/'){
         	stbuf->st_mode = S_IFREG;
         	stbuf->st_size = 400;
 		return 0;
@@ -36,14 +36,14 @@ static int hello_getattr(const char *path, struct stat *stbuf,
 
 static int hello_read(const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi)
 {
-	if(strcmp(path+1, filename) != 0)
+	if(strcmp(path+1, filename) != 0 || *path != '/')
                  return -ENOENT;
 	struct fuse_context* fc = fuse_get_context();
 	pid_t pid = fc->pid;
         size_t len = snprintf(NULL, 0, "Hello, %d\n", pid);
         (void) fi;
 	char* content = (char*) malloc (len);
-	sprintf(content, "Hello, %d\n", pid);
+	sprintf(content, "hello, %d\n", pid);
         if (offset < (long int)len) {
                 if (offset + size > len)
                         size = len - offset;
@@ -77,7 +77,7 @@ static int hello_write(const char *path, const char *buf, size_t size, off_t off
 	(void) size;
 	(void) offset;
 	(void) fi;
-	if(strcmp(path, "/hello") != 0)
+	if(strcmp(path+1, filename) != 0 || *path != '/')
                  return -ENOENT;
 	
 	return -EROFS;
