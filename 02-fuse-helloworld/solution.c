@@ -77,6 +77,7 @@ static int hello_write(const char *path, const char *buf, size_t size, off_t off
 	(void) size;
 	(void) offset;
 	(void) fi;
+	(void) path;
 	/*
 	if(strcmp(path+1, filename) != 0 || *path != '/')
                  return -ENOENT;
