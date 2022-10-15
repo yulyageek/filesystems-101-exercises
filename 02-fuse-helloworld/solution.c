@@ -84,9 +84,8 @@ static int hello_write(const char *path, const char *buf, size_t size, off_t off
 	(void) size;
 	(void) offset;
 	(void) fi;
-	(void) path;
-	if(strcmp(path, "/hello") != 0)
-                 return -ENOENT;
+	if(strcmp(path, "/hello") != 0){}
+                 //return -ENOENT;
 	return -EROFS;
 }
 
@@ -94,9 +93,8 @@ static int hello_write_buf(const char *path, struct fuse_bufvec *buf, off_t off,
 	(void) buf;
 	(void) off;
 	(void) fi;
-	(void) path;
-	if(strcmp(path, "/hello"))
-                 return -ENOENT;
+	if(strcmp(path, "/hello") != 0){}
+                 //return -ENOENT;
 	return -EROFS;
 }
 static const struct fuse_operations hellofs_ops = {
