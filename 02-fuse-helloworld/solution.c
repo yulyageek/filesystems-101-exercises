@@ -85,12 +85,24 @@ static int hello_write(const char *path, const char *buf, size_t size, off_t off
 	return -EROFS;
 }
 
+static int hello_write_buf(const char *path, struct fuse_bufvec *buf, off_t off, struct fuse_file_info *fi){
+	(void) buf;
+	(void) off;
+	(void) fi;
+	(void) path;
+	/*
+	if(strcmp(path+1, filename) != 0 || *path != '/')
+                 return -ENOENT;
+	*/
+	return -EROFS;
+}
 static const struct fuse_operations hellofs_ops = {
 	.init = hello_init,
 	.getattr = hello_getattr,
         .readdir = hello_readdir,
         .read = hello_read,
         .write = hello_write,
+        .write_buf = hello_write_buf,
 };
 
 int helloworld(const char *mntp)
