@@ -8,8 +8,6 @@
 
 #include <fuse.h>
 
-char* filename = "hello";
-
 static void *hello_init(struct fuse_conn_info *conn, struct fuse_config *cfg)
 {
         (void) conn;
@@ -26,8 +24,8 @@ static int hello_getattr(const char *path, struct stat *stbuf,
         	stbuf->st_mode = S_IFDIR;
 		return 0;
 	} 
-	if(strcmp(path+1, filename) == 0 && *path == '/'){
-        	stbuf->st_mode = S_IFREG;
+	if(strcmp(path, "/hello") == 0){
+        	stbuf->st_mode = S_IFREG | S_IRUSR;
         	stbuf->st_size = 400;
 		return 0;
 	}
@@ -36,11 +34,11 @@ static int hello_getattr(const char *path, struct stat *stbuf,
 
 static int hello_read(const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi)
 {
-	if(strcmp(path+1, filename) != 0 || *path != '/')
+	if(strcmp(path, "/hello") != 0)
                  return -ENOENT;
 	struct fuse_context* fc = fuse_get_context();
 	pid_t pid = fc->pid;
-        size_t len = snprintf(NULL, 0, "Hello, %d\n", pid);
+        size_t len = snprintf(NULL, 0, "hello, %d\n", pid);
         (void) fi;
 	char* content = (char*) malloc (len);
 	sprintf(content, "hello, %d\n", pid);
@@ -56,7 +54,7 @@ static int hello_read(const char *path, char *buf, size_t size, off_t offset, st
 }
 
 static int hello_open (const char *path, struct fuse_file_info *fi){
-  if(strcmp(path+1, filename) != 0 || *path != '/'){
+  if(strcmp(path, "/hello") != 0){
     return -ENOENT;
   }
   if((fi->flags & O_ACCMODE) != O_RDONLY)
@@ -87,10 +85,8 @@ static int hello_write(const char *path, const char *buf, size_t size, off_t off
 	(void) offset;
 	(void) fi;
 	(void) path;
-	/*
-	if(strcmp(path+1, filename) != 0 || *path != '/')
+	if(strcmp(path, "/hello") != 0)
                  return -ENOENT;
-	*/
 	return -EROFS;
 }
 
@@ -99,10 +95,8 @@ static int hello_write_buf(const char *path, struct fuse_bufvec *buf, off_t off,
 	(void) off;
 	(void) fi;
 	(void) path;
-	/*
-	if(strcmp(path+1, filename) != 0 || *path != '/')
+	if(strcmp(path, "/hello"))
                  return -ENOENT;
-	*/
 	return -EROFS;
 }
 static const struct fuse_operations hellofs_ops = {
