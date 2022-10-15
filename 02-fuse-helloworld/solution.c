@@ -55,6 +55,15 @@ static int hello_read(const char *path, char *buf, size_t size, off_t offset, st
         return size;
 }
 
+static int hello_open (const char *path, struct fuse_file_info *fi){
+  if(strcmp(path+1, filename) != 0 || *path != '/'){
+    return -ENOENT;
+  }
+  if((fi->flags & O_ACCMODE) != O_RDONLY)
+    return -EROFS;
+  return 0; 
+} 
+
 static int hello_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
                          off_t offset, struct fuse_file_info *fi,
                          enum fuse_readdir_flags flags)
@@ -101,6 +110,7 @@ static const struct fuse_operations hellofs_ops = {
 	.getattr = hello_getattr,
         .readdir = hello_readdir,
         .read = hello_read,
+        .open = hello_open,
         .write = hello_write,
         .write_buf = hello_write_buf,
 };
