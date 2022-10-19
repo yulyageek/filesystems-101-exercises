@@ -62,6 +62,14 @@ static int hello_open (const char *path, struct fuse_file_info *fi){
   return 0; 
 } 
 
+static int hello_create(const char* path, mode_t mode, struct fuse_file_info* fi){
+  (void)path;
+  (void)mode;
+  (void)fi;
+  return -EROFS;
+
+}
+
 static int hello_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
                          off_t offset, struct fuse_file_info *fi,
                          enum fuse_readdir_flags flags)
@@ -103,6 +111,7 @@ static const struct fuse_operations hellofs_ops = {
         .readdir = hello_readdir,
         .read = hello_read,
         .open = hello_open,
+        .create = hello_create,
         .write = hello_write,
         .write_buf = hello_write_buf,
 };
