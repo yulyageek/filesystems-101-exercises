@@ -9,6 +9,8 @@
    2. there must be 4 queued read requests as long as there is enough
       data in @in.
 
+   Do not use Linux kernel interfaces directly, use liburing.
+
    If a copy was successful, return 0. If an error occurred during a read
    or a write, return -errno.
 */
