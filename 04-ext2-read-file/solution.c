@@ -101,7 +101,7 @@ int dump_file(int img, int inode_nr, int out)
 	
 	//lseek(img, block_size * (gd.bg_inode_table) + (inode_nr - 1) * sizeof(struct ext2_inode), SEEK_SET);
 	struct ext2_inode in;
-	lseek(img, block_size * (gd.bg_inode_table) + (inode_nr - 1) * sizeof(in), SEEK_SET);
+	lseek(img, block_size * (gd.bg_inode_table) + (inode_nr) * sizeof(in), SEEK_SET);
 	//len  = read(img, &in, sizeof(struct ext2_inode));
 	len  = read(img, &in, sizeof(in));
 	if(len < 0){
