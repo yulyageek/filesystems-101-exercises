@@ -7,6 +7,74 @@
 #include <stdlib.h>
 #include <linux/types.h>
 
+
+static char* block_buf = NULL;
+static __le32* single_inderect_block_buf = NULL;
+static __le32* double_inderect_block_buf = NULL;
+static __u32 block_size;
+
+__attribute__((destructor)) void free_all(void){
+	if (block_buf != NULL)
+		free(block_buf);
+	if(single_inderect_block_buf != NULL)
+		free(single_inderect_block_buf);
+	if(double_inderect_block_buf != NULL)
+		free(double_inderect_block_buf);		
+}
+
+int copy_direct_block(int img, int out, __le32 block_nr){
+	if(block_nr == 0x0000){
+		return 0;
+	}
+	lseek(img, block_size * block_nr, SEEK_SET);
+	int len = read(img, block_buf, block_size);
+	if(len < (int)block_size){
+		return -errno;
+	}
+	len = write(out, block_buf, block_size);
+	if(len < (int)block_size){
+		return -errno;
+	}
+	return 0;
+}
+
+int copy_single_indirect_block(int img, int out, __le32 block_nr){
+	if (block_nr == 0x0000){
+		return 0;
+	}
+	lseek(img, block_size * block_nr, SEEK_SET);
+	int len = read(img, single_inderect_block_buf, block_size);
+	if(len < (int)block_size){
+		return -errno;
+	}
+	for(__u32 i=0; i < (__u32)(block_size / sizeof(__le32)); i++){
+		//printf("%i: %d\n", i, single_inderect_block_buf[i]);
+		int ret = copy_direct_block(img, out, single_inderect_block_buf[i]);
+		if(ret < 0){
+			return ret;
+		}
+	}
+	return 0;
+}
+
+int copy_double_indirect_block(int img, int out, __le32 block_nr){
+	if (block_nr == 0x0000){
+		return 0;
+	}
+	lseek(img, block_size * block_nr, SEEK_SET);
+	int len = read(img, double_inderect_block_buf, block_size);
+	if(len < (int)block_size){
+		return -errno;
+	}
+	for(__u32 i=0; i < (__u32)(block_size / sizeof(__le32)); i++){
+		int ret = copy_single_indirect_block(img, out, double_inderect_block_buf[i]);
+		if(ret < 0){
+			return ret;
+		}
+	}
+	return 0;
+}
+
 int dump_file(int img, int inode_nr, int out)
 {
 
@@ -17,7 +85,7 @@ int dump_file(int img, int inode_nr, int out)
 	if(len < 0){
 		return -errno;
 	}
-	__u32 block_size = 1024 << sb.s_log_block_size;
+	block_size = 1024 << sb.s_log_block_size;
 
 	struct ext2_group_desc gd;
 	lseek(img, block_size * (sb.s_first_data_block + 1), SEEK_SET);
@@ -36,24 +104,28 @@ int dump_file(int img, int inode_nr, int out)
 		return -errno;
 	}
 
-	char *buf = (char*)malloc(block_size);
-	for(int i = 0; i < 15; i++){
-		if(!in.i_block[i]){
-			break;
-		}
-		lseek(img, block_size * in.i_block[i], SEEK_SET);
-		len = read(img, buf, block_size);
-		if(len < (int)block_size){
-			free(buf);
-			return -errno;
-		}
-		len = write(out, buf, block_size);
-		if(len < (int)block_size){
-			free(buf);
-			return -errno;
+	block_buf = (char*)malloc(block_size);
+	int ret = 0;
+	//First 12 bloks direct
+	for(int i = 0; i < 12; i++){
+		//printf("%d\n", in.i_block[i]);
+		ret = copy_direct_block(img, out, in.i_block[i]);
+		if(ret < 0){
+			return ret;
 		}
 	}
-	free(buf);
+	single_inderect_block_buf = (__le32*)malloc(block_size);
+	//13th block is single-indirect
+	ret = copy_single_indirect_block(img, out, in.i_block[12]);
+	if(ret < 0){
+		return ret;
+	}
+	//14th block is single-indirect
+	double_inderect_block_buf = (__le32*)malloc(block_size);
+	ret = copy_double_indirect_block(img, out, in.i_block[13]);
+	if(ret < 0){
+		return ret;
+	}
 
 	return 0;
 }
