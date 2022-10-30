@@ -89,8 +89,9 @@ int dump_file(int img, int inode_nr, int out)
 		return -errno;
 	}
 	block_size = 1024 << sb.s_log_block_size;
-	fprintf(stderr, "inode %d, per group %d\n", inode_nr, sb.s_inodes_per_group);
 
+	fprintf(stderr, "inode %d, per group %d\n", inode_nr, sb.s_inodes_per_group);
+	return -1;
 	struct ext2_group_desc gd;
 	lseek(img, block_size * (sb.s_first_data_block + 1), SEEK_SET);
 	//len  = read(img, &gd, sizeof(struct ext2_group_desc));
