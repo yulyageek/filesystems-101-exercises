@@ -12,6 +12,8 @@ static char* block_buf = NULL;
 static __le32* single_inderect_block_buf = NULL;
 static __le32* double_inderect_block_buf = NULL;
 static __u32 block_size;
+static __u32 size;
+static __u32 offset = 0;
 
 __attribute__((destructor)) void free_all(void){
 	if (block_buf != NULL)
@@ -31,10 +33,11 @@ int copy_direct_block(int img, int out, __le32 block_nr){
 	if(len < (int)block_size){
 		return -errno;
 	}
-	len = write(out, block_buf, block_size);
+	len = write(out, block_buf, ((__u32)len<size-offset?(__u32)len:size-offset));
 	if(len < (int)block_size){
 		return -errno;
 	}
+	offset += len;
 	return 0;
 }
 
@@ -103,7 +106,7 @@ int dump_file(int img, int inode_nr, int out)
 	if(len < 0){
 		return -errno;
 	}
-
+	size = in.i_size;
 	block_buf = (char*)malloc(block_size);
 	int ret = 0;
 	//First 12 bloks direct
