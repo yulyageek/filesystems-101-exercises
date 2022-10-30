@@ -4,6 +4,7 @@
 #include <errno.h>
 #include <string.h>
 #include <stdlib.h>
+#include <linux/types.h>
 
 int dump_file(int img, int inode_nr, int out)
 {
