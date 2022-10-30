@@ -90,8 +90,7 @@ int dump_file(int img, int inode_nr, int out)
 	}
 	block_size = 1024 << sb.s_log_block_size;
 
-	fprintf(stderr, "inode %d, per group %d\n", inode_nr, sb.s_inodes_per_group);
-	return -1;
+	//fprintf(stderr, "inode %d, per group %d\n", inode_nr, sb.s_inodes_per_group);
 	struct ext2_group_desc gd;
 	lseek(img, block_size * (sb.s_first_data_block + 1), SEEK_SET);
 	//len  = read(img, &gd, sizeof(struct ext2_group_desc));
@@ -113,7 +112,7 @@ int dump_file(int img, int inode_nr, int out)
 	int ret = 0;
 	//First 12 bloks direct
 	for(int i = 0; i < 12; i++){
-		//fprintf(stderr, "%d: %d\n", i, in.i_block[i]);
+		fprintf(stderr, "%d: %d\n", i, in.i_block[i]);
 		ret = copy_direct_block(img, out, in.i_block[i]);
 		if(ret < 0){
 			return ret;
