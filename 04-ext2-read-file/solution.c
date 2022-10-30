@@ -13,7 +13,8 @@ int dump_file(int img, int inode_nr, int out)
 	
 	struct ext2_super_block sb;
 	lseek(img, 1024, SEEK_SET);
-	int len  = read(img, &sb, sizeof(struct ext2_super_block));
+	//int len  = read(img, &sb, sizeof(struct ext2_super_block));
+	int len  = read(img, &sb, sizeof(sb));
 	if(len < 0){
 		return -errno;
 	}
@@ -21,13 +22,15 @@ int dump_file(int img, int inode_nr, int out)
 
 	struct ext2_group_desc gd;
 	lseek(img, block_size * (sb.s_first_data_block + 1), SEEK_SET);
-	len  = read(img, &gd, sizeof(struct ext2_group_desc));
+	//len  = read(img, &gd, sizeof(struct ext2_group_desc));
+	len  = read(img, &gd, sizeof(gd));
 	if(len < 0){
 		return -errno;
 	}
 	
-	lseek(img, block_size * (gd.bg_inode_table) + (inode_nr - 1) * sizeof(struct ext2_inode), SEEK_SET);
+	//lseek(img, block_size * (gd.bg_inode_table) + (inode_nr - 1) * sizeof(struct ext2_inode), SEEK_SET);
 	struct ext2_inode in;
+	lseek(img, block_size * (gd.bg_inode_table) + (inode_nr - 1) * sizeof(in), SEEK_SET);
 	len  = read(img, &in, sizeof(struct ext2_inode));
 	if(len < 0){
 		return -errno;
