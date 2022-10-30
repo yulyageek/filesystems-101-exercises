@@ -12,7 +12,7 @@ int dump_file(int img, int inode_nr, int out)
 	(void) inode_nr;
 	(void) out;
 	
-	struct ext2_super_block sb;
+	ext2_super_block  sb;
 	lseek(img, 1024, SEEK_SET);
 	//int len  = read(img, &sb, sizeof(struct ext2_super_block));
 	int len  = read(img, &sb, sizeof(sb));
