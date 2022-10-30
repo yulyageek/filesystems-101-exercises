@@ -1,4 +1,5 @@
 #include <solution.h>
+#include <ext2.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <errno.h>
@@ -8,11 +9,8 @@
 
 int dump_file(int img, int inode_nr, int out)
 {
-	(void) img;
-	(void) inode_nr;
-	(void) out;
-	
-	ext2_super_block  sb;
+
+	struct ext2_super_block  sb;
 	lseek(img, 1024, SEEK_SET);
 	//int len  = read(img, &sb, sizeof(struct ext2_super_block));
 	int len  = read(img, &sb, sizeof(sb));
