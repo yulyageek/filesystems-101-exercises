@@ -51,7 +51,7 @@ int copy_single_indirect_block(int img, int out, __le32 block_nr){
 		return -errno;
 	}
 	for(__u32 i=0; i < (__u32)(block_size / sizeof(__le32)); i++){
-		//printf("%i: %d\n", i, single_inderect_block_buf[i]);
+		//fprintf(stderr, "%i: %d\n", i, single_inderect_block_buf[i]);
 		int ret = copy_direct_block(img, out, single_inderect_block_buf[i]);
 		if(ret < 0){
 			return ret;
@@ -89,6 +89,7 @@ int dump_file(int img, int inode_nr, int out)
 		return -errno;
 	}
 	block_size = 1024 << sb.s_log_block_size;
+	fprintf(stderr, "inode %d, per group %d\n", inode_nr, sb.s_inodes_per_group);
 
 	struct ext2_group_desc gd;
 	lseek(img, block_size * (sb.s_first_data_block + 1), SEEK_SET);
@@ -111,7 +112,7 @@ int dump_file(int img, int inode_nr, int out)
 	int ret = 0;
 	//First 12 bloks direct
 	for(int i = 0; i < 12; i++){
-		//printf("%d\n", in.i_block[i]);
+		//fprintf(stderr, "%d: %d\n", i, in.i_block[i]);
 		ret = copy_direct_block(img, out, in.i_block[i]);
 		if(ret < 0){
 			return ret;
@@ -130,8 +131,8 @@ int dump_file(int img, int inode_nr, int out)
 		return ret;
 	}
 	if(offset != size){
-		fprintf(stderr, "%s\n", block_buf);
-		return -1;
+		fprintf(stderr, "my_size %d, file_size %d\n", offset, size);
+		return 0;
 	}
 	return 0;
 }
