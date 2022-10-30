@@ -52,8 +52,8 @@ int dump_file(int img, int inode_nr, int out)
 			free(buf);
 			return -errno;
 		}
-		free(buf);
 	}
+	free(buf);
 
 	return 0;
 }
