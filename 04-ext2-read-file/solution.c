@@ -87,16 +87,19 @@ int dump_file(int img, int inode_nr, int out)
 	}
 	
 	block_size = 1024 << sb.s_log_block_size;
+	int block_group_nr = (inode_nr - 1) / sb.s_inodes_per_group;
 
 	struct ext2_group_desc gd;
-	lseek(img, block_size * (sb.s_first_data_block + 1), SEEK_SET);
+	lseek(img, block_size * (sb.s_first_data_block + 1) + block_group_nr * sizeof(gd), SEEK_SET);
 	len  = read(img, &gd, sizeof(gd));
 	if(len < 0){
 		return -errno;
 	}
 
 	struct ext2_inode in;
-	lseek(img, block_size * gd.bg_inode_table + (inode_nr - 1) * sb.s_inode_size/*sizeof(in)*/, SEEK_SET);
+	int inode_in_group = (inode_nr - 1) % sb.s_inodes_per_group;
+
+	lseek(img, block_size * gd.bg_inode_table + inode_in_group * sb.s_inode_size/*sizeof(in)*/, SEEK_SET);
 	len  = read(img, &in, sizeof(in));
 	if(len < 0){
 		return -errno;
