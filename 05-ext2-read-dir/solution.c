@@ -40,12 +40,15 @@ int read_direct_block(int img, __le32 block_nr){
 		}
 		entry_name[name_len] = '\0';
 		if (entry.file_type == EXT2_FT_REG_FILE){
-			//printf("%d f %s\n", entry.inode, entry_name);
-			report_file(entry.inode, 'f', entry_name);
+			printf("%d f %s\n", entry.inode, entry_name);
+			//report_file(entry.inode, 'f', entry_name);
 		}
 		if (entry.file_type == EXT2_FT_DIR){
-			//printf("%d d %s\n", entry.inode, entry_name);
-			report_file(entry.inode, 'd', entry_name);
+			printf("%d d %s\n", entry.inode, entry_name);
+			//report_file(entry.inode, 'd', entry_name);
+		}
+		if(entry.rec_len + offset == (block_nr+1) * block_size){
+			return 0;
 		}
 		offset += entry.rec_len;
 	}
