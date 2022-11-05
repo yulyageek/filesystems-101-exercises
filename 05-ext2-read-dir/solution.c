@@ -22,11 +22,6 @@ __attribute__((destructor)) void free_all(void){
 		free(double_inderect_block_buf);		
 }
 
-void report_file(int inode_nr, char type, const char *name){
-	printf("%d %c %s\n", inode_nr, type, name);
-}
-
-
 int read_direct_block(int img, __le32 block_nr){
 	__u32 offset = block_nr * block_size;
 	struct ext2_dir_entry_2 entry;
