@@ -147,5 +147,5 @@ int scan_dir(int img, int inode_nr, char *name, char type)
 	if(ret != 0){
 		return ret;
 	}
-	return -ENOTDIR;
+	return -ENOENT;
 }
