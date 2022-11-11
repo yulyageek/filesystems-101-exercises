@@ -57,7 +57,6 @@ int scan_dir(int img, __le32 block_nr, int out){
 		}
 		entry_name[name_len] = '\0';
 		if(!strcmp(entry_name, canon_entry_name) && entry.file_type == entry_type){
-			printf("ENTRY in %d inode\n", entry.inode);
 			return entry.inode;
 		}
 		if(entry.rec_len + offset == (block_nr+1) * block_size){
@@ -137,8 +136,9 @@ int process_inode(int img, int inode_nr, int out)
 	if(len == -1){
 		return -errno;
 	}
-
-	block_buf = (char*)malloc(block_size);
+	if (block_buf == NULL){
+		block_buf = (char*)malloc(block_size);
+	}
 	size = in.i_size;
 	int ret = 0;
 	//First 12 bloks direct
@@ -148,14 +148,18 @@ int process_inode(int img, int inode_nr, int out)
 			return ret;
 		}
 	}
-	single_inderect_block_buf = (__le32*)malloc(block_size);
+	if (single_inderect_block_buf == NULL){
+		single_inderect_block_buf = (__le32*)malloc(block_size);
+	}
 	//13th block is single-indirect
 	ret = read_single_indirect_block(img, in.i_block[12], out);
 	if(check_and_return(ret)){
 		return ret;
 	}
 	//14th block is single-indirect
-	double_inderect_block_buf = (__le32*)malloc(block_size);
+	if (double_inderect_block_buf == NULL){
+		double_inderect_block_buf = (__le32*)malloc(block_size);
+	}
 	ret = read_double_indirect_block(img, in.i_block[13], out);
 	if(check_and_return(ret)){
 		return ret;
@@ -203,7 +207,6 @@ int dump_file(int img, const char *path, int out)
 			check_and_return = le0;
 			inode_nr = process_inode(img, inode_nr, out);
 			if(inode_nr < 0){
-				printf("%d", inode_nr);
 				return inode_nr;
 			}
 			break;
