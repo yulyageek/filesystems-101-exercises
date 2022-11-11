@@ -41,8 +41,13 @@ int scan_direct_block(int img, __le32 block_nr){
 			return 0;
 		}
 		entry_name[name_len] = '\0';
-		if(!strcmp(entry_name, canon_entry_name) && entry.file_type == entry_type){
-			return entry.inode;
+		if(!strcmp(entry_name, canon_entry_name)){
+			if(entry.file_type == entry_type){
+				return entry.inode;
+			}
+			if(entry_type == EXT2_FT_DIR){
+				return -ENOTDIR;
+			}
 		}
 		if(entry.rec_len + offset == (block_nr+1) * block_size){
 			return 0;
@@ -141,9 +146,6 @@ int scan_dir(int img, int inode_nr, char *name, char type)
 	ret = scan_double_indirect_block(img, in.i_block[13]);
 	if(ret != 0){
 		return ret;
-	}
-	if(entry_type == EXT2_FT_DIR){
-		return -ENOTDIR;
 	}
 	return -ENOTDIR;
 }

@@ -12,7 +12,7 @@
 int dump_file(int img, const char *path, int out)
 {
 	if (path[0] != '/'){
-		return -ENOTDIR;
+		return -ENOENT;
 	}
 	int ret = 0;
 	char canon_entry_name[MAX_LEN];
