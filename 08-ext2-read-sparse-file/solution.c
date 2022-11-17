@@ -25,13 +25,17 @@ __attribute__((destructor)) void free_all(void){
 }
 
 int copy_direct_block(int img, int out, __le32 block_nr){
+	int len = block_size;
 	if(block_nr == 0){
-		return 0;
+		//return 0;
+		memset(block_buf, 0x00, block_size);
 	}
-	lseek(img, block_size * block_nr, SEEK_SET);
-	int len = read(img, block_buf, block_size);
-	if(len < (int)block_size){
-		return -errno;
+	else{
+		lseek(img, block_size * block_nr, SEEK_SET);
+		int len = read(img, block_buf, block_size);
+		if(len < (int)block_size){
+			return -errno;
+		}
 	}
 	len = write(out, block_buf, ((__u32)len<size-offset?(__u32)len:size-offset));
 	if(len < (int)block_size){
