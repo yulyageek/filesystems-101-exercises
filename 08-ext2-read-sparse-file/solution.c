@@ -46,16 +46,22 @@ int copy_direct_block(int img, int out, __le32 block_nr){
 }
 
 int copy_single_indirect_block(int img, int out, __le32 block_nr){
-	if (block_nr == 0){
-		return copy_direct_block(img, out, block_nr);
-	}
+	// if (block_nr == 0){
+	// 	return copy_direct_block(img, out, block_nr);
+	// }
+	int ret = 0;
 	__u32 offset = block_size * block_nr;
 	int len = pread(img, single_inderect_block_buf, block_size, offset);
 	if(len < (int)block_size){
 		return -errno;
 	}
 	for(__u32 i=0; i < (__u32)(block_size / sizeof(__le32)); i++){
-		int ret = copy_direct_block(img, out, single_inderect_block_buf[i]);
+		if (block_nr != 0){
+			ret = copy_direct_block(img, out, single_inderect_block_buf[i]);
+		}
+		else {
+			ret = copy_direct_block(img, out, 0);
+		}
 		if(ret < 0){
 			return ret;
 		}
