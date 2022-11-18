@@ -28,7 +28,7 @@ int copy_direct_block(int img, int out, __le32 block_nr){
 	ssize_t len = block_size;
 	if(block_nr == 0){
 		//return 0;
-		memset(block_buf, 0x00, block_size);
+		memset(block_buf, 0, block_size);
 	}
 	else{
 		len = pread(img, block_buf, block_size, block_size * block_nr);
