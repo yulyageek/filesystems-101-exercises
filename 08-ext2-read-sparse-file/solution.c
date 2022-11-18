@@ -13,7 +13,7 @@ static __le32* single_inderect_block_buf = NULL;
 static __le32* double_inderect_block_buf = NULL;
 static __u32 block_size;
 static __u32 size;
-static __u32 offset = 0;
+static __u32 copy_offset = 0;
 
 __attribute__((destructor)) void free_all(void){
 	if (block_buf != NULL)
@@ -25,23 +25,22 @@ __attribute__((destructor)) void free_all(void){
 }
 
 int copy_direct_block(int img, int out, __le32 block_nr){
-	int len = block_size;
+	ssize_t len = block_size;
 	if(block_nr == 0){
 		//return 0;
 		memset(block_buf, 0x00, block_size);
 	}
 	else{
-		lseek(img, block_size * block_nr, SEEK_SET);
-		int len = read(img, block_buf, block_size);
-		if(len < (int)block_size){
+		len = pread(img, block_buf, block_size, block_size * block_nr);
+		if(len == -1){
 			return -errno;
 		}
 	}
-	len = write(out, block_buf, ((__u32)len<size-offset?(__u32)len:size-offset));
-	if(len < (int)block_size){
+	len = write(out, block_buf, ((__u32)len<size-copy_offset?(__u32)len:size-copy_offset));
+	if(len == -1){
 		return -errno;
 	}
-	offset += len;
+	copy_offset += len;
 	return 0;
 }
 
@@ -49,8 +48,8 @@ int copy_single_indirect_block(int img, int out, __le32 block_nr){
 	if (block_nr == 0){
 		return 0;
 	}
-	lseek(img, block_size * block_nr, SEEK_SET);
-	int len = read(img, single_inderect_block_buf, block_size);
+	__u32 offset = block_size * block_nr;
+	int len = pread(img, single_inderect_block_buf, block_size, offset);
 	if(len < (int)block_size){
 		return -errno;
 	}
@@ -64,11 +63,11 @@ int copy_single_indirect_block(int img, int out, __le32 block_nr){
 }
 
 int copy_double_indirect_block(int img, int out, __le32 block_nr){
+	__u32 offset = block_size * block_nr;
 	if (block_nr == 0){
 		return 0;
 	}
-	lseek(img, block_size * block_nr, SEEK_SET);
-	int len = read(img, double_inderect_block_buf, block_size);
+	int len = pread(img, double_inderect_block_buf, block_size, offset);
 	if(len < (int)block_size){
 		return -errno;
 	}
@@ -84,8 +83,8 @@ int copy_double_indirect_block(int img, int out, __le32 block_nr){
 int dump_file(int img, int inode_nr, int out)
 {
 	struct ext2_super_block  sb;
-	lseek(img, 1024, SEEK_SET);
-	int len  = read(img, &sb, sizeof(sb));
+	__u32 offset = 1024; 
+	ssize_t len  = pread(img, &sb, sizeof(sb), offset);
 	if(len < 0){
 		return -errno;
 	}
@@ -94,8 +93,8 @@ int dump_file(int img, int inode_nr, int out)
 	int block_group_nr = (inode_nr - 1) / sb.s_inodes_per_group;
 
 	struct ext2_group_desc gd;
-	lseek(img, block_size * (sb.s_first_data_block + 1) + block_group_nr * sizeof(gd), SEEK_SET);
-	len  = read(img, &gd, sizeof(gd));
+	offset = block_size * (sb.s_first_data_block + 1) + block_group_nr * sizeof(gd);
+	len  = pread(img, &gd, sizeof(gd), offset);
 	if(len < 0){
 		return -errno;
 	}
@@ -103,8 +102,8 @@ int dump_file(int img, int inode_nr, int out)
 	struct ext2_inode in;
 	int inode_in_group = (inode_nr - 1) % sb.s_inodes_per_group;
 
-	lseek(img, block_size * gd.bg_inode_table + inode_in_group * sb.s_inode_size/*sizeof(in)*/, SEEK_SET);
-	len  = read(img, &in, sizeof(in));
+	offset = block_size * gd.bg_inode_table + inode_in_group * sb.s_inode_size;
+	len  = pread(img, &in, sizeof(in), offset);
 	if(len < 0){
 		return -errno;
 	}
