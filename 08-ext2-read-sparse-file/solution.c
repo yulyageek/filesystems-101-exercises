@@ -25,19 +25,20 @@ __attribute__((destructor)) void free_all(void){
 }
 
 int copy_direct_block(int img, int out, __le32 block_nr){
-	ssize_t len = block_size;
+	__u32 len = block_size<size-copy_offset?block_size:size-copy_offset;
+	if(len == 0){
+		return 0;
+	}
 	if(block_nr == 0){
 		//return 0;
 		memset(block_buf, 0, block_size);
 	}
 	else{
-		len = pread(img, block_buf, block_size, block_size * block_nr);
-		if(len == -1){
+		if(pread(img, block_buf, len, block_size * block_nr) != len){
 			return -errno;
 		}
 	}
-	len = write(out, block_buf, ((__u32)len<size-copy_offset?(__u32)len:size-copy_offset));
-	if(len == -1){
+	if(write(out, block_buf, len) != len){
 		return -errno;
 	}
 	copy_offset += len;
@@ -129,6 +130,6 @@ int dump_file(int img, int inode_nr, int out)
 	if(ret < 0){
 		return ret;
 	}
-	fprintf(stderr, "my_size: %d, file_size: %d", copy_offset, size);
+	//fprintf(stderr, "my_size: %d, file_size: %d", copy_offset, size);
 	return 0;
 }
