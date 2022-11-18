@@ -130,6 +130,9 @@ int dump_file(int img, int inode_nr, int out)
 	if(ret < 0){
 		return ret;
 	}
-	fprintf(stderr, "my_size: %d, file_size: %d", copy_offset, size);
-	return -1;
+	if(copy_offset != size){
+		fprintf(stderr, "my_size: %d, file_size: %d", copy_offset, size);
+		return -1;
+	}
+	return 0;
 }
