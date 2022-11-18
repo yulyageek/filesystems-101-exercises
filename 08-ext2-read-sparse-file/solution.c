@@ -47,7 +47,7 @@ int copy_direct_block(int img, int out, __le32 block_nr){
 
 int copy_single_indirect_block(int img, int out, __le32 block_nr){
 	if (block_nr == 0){
-		return 0;
+		return copy_direct_block(img, out, block_nr);
 	}
 	__u32 offset = block_size * block_nr;
 	int len = pread(img, single_inderect_block_buf, block_size, offset);
@@ -66,7 +66,7 @@ int copy_single_indirect_block(int img, int out, __le32 block_nr){
 int copy_double_indirect_block(int img, int out, __le32 block_nr){
 	__u32 offset = block_size * block_nr;
 	if (block_nr == 0){
-		return 0;
+		return copy_direct_block(img, out, block_nr);
 	}
 	int len = pread(img, double_inderect_block_buf, block_size, offset);
 	if(len < (int)block_size){
