@@ -319,6 +319,9 @@ void btree_delete(struct btree *t, int x)
 			}
 		}
 	}
+	if(!btree_contains(t, x)){
+		return;
+	}
 	btree_delete_from_node(t->root, x);
 	if(!t->root->is_leaf && t->root->num == 0){
 		struct node *new_node = t->root->children[0];
