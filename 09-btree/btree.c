@@ -256,13 +256,15 @@ void btree_delete(struct btree *t, int x)
 							}
 						}
 						node->children[i]->num += 1;
-						node->children[i]->keys[0] = node->keys[i];
+						//node->children[i]->keys[0] = node->keys[i];
+						node->children[i]->keys[0] = node->keys[i-1];
 						if(!node->children[i]->is_leaf){
 							node->children[i]->children[0] = node->children[i-1]->children[node->children[i-1]->num];
 						}
 
 						//на его место поместить крайний ключ из соседнего дерева
-						node->keys[i] = node->children[i-1]->keys[node->children[i-1]->num - 1];
+						//node->keys[i] = node->children[i-1]->keys[node->children[i-1]->num - 1];
+						node->keys[i-1] = node->children[i-1]->keys[node->children[i-1]->num - 1];
 						//node->children[i+1]->num -= 1;
 						node->children[i-1]->num -= 1;
 					}
