@@ -20,8 +20,8 @@ struct btree{
 struct node* node_alloc(unsigned int L)
 {
 	struct node *node = (struct node *)malloc(sizeof(struct node));
-	node->keys = (int*)malloc(2 * L * sizeof(int));
-	node->children = (struct node**)malloc((2*L+1) * sizeof(struct node*));
+	node->keys = (int*)calloc(2 * L, sizeof(int));
+	node->children = (struct node**)calloc( 2*L+1, sizeof(struct node*));
 	return node;
 }
 
@@ -144,10 +144,8 @@ void print_tree(struct btree *t){
 
 void btree_delete(struct btree *t, int x)
 {
-	// (void)t;
-	// (void)x;
-	int L = t->L;
 	void btree_delete_from_node(struct node *node, int x){
+		int L = t->L;
 		int i = 0;
 		while(i < node->num && x > node->keys[i]){
 			i += 1;
@@ -362,8 +360,16 @@ struct btree_iter* btree_iter_start(struct btree *t)
 {
 	struct btree_iter *it = (struct btree_iter *) malloc(sizeof(struct btree_iter));
 	it->t = t;
-	it->path = (struct node **) malloc(sizeof(struct node *) * 100);
-	it->indexes = (int*) malloc(sizeof(int *) * 100);
+	int max_depth = 0;
+	struct node *node = t->root;
+	while(!node->is_leaf){
+		node = node->children[0];
+		max_depth += 1;
+	}
+	max_depth += 1;
+	//printf("depth %d\n", max_depth);
+	it->path = (struct node **) malloc(sizeof(struct node *) * max_depth);
+	it->indexes = (int*) malloc(sizeof(int *) * max_depth);
 
 	it->current_depth = 0;
 	it->path[0] = t->root;
