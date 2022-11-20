@@ -1,4 +1,4 @@
-#include <solution.h>
+#include "solution.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -196,7 +196,7 @@ void btree_delete(struct btree *t, int x)
 						prev_dougther->children[L+j] = next_dougther->children[j];
 					}
 				}
-				prev_dougther->num = 2* L -1;
+				prev_dougther->num = 2* L - 1;
 				//x удаляем из node и следующую дочь
 				for(int j=i; j<node->num-1; j++){
 					node->keys[j] = node->keys[j+1];
@@ -220,6 +220,7 @@ void btree_delete(struct btree *t, int x)
 			if(node->children[i]->num == L-1){
 				if((i > 0 && node->children[i-1]->num >= L) || (i < node->num && node->children[i+1]->num >= L)){
 					if (i < node->num && node->children[i+1]->num >= L) {
+					//if (i < node->num - 1 && node->children[i+1]->num >= L) {
 						//передать ключ разделитель и детей
 						node->children[i]->keys[node->children[i]->num] = node->keys[i];
 						node->children[i]->num += 1;
@@ -240,9 +241,17 @@ void btree_delete(struct btree *t, int x)
 					}
 					else{
 						//передать ключ разделитель и детей
-						for(int j=0; j < node->children[i]->num; j++){
+						// for(int j=0; j < node->children[i]->num; j++){
+						// 	node->children[i]->keys[j+1] = node->children[i]->keys[j];
+						// 	if(!node->children[i]->is_leaf){
+						// 		node->children[i]->children[j+1] = node->children[i]->children[j];
+						// 	}
+						// }
+						for(int j=node->children[i]->num - 1; j >= 0; j--){
 							node->children[i]->keys[j+1] = node->children[i]->keys[j];
-							if(!node->children[i]->is_leaf){
+						}
+						if(!node->children[i]->is_leaf){
+							for(int j=node->children[i]->num; j >= 0; j--){
 								node->children[i]->children[j+1] = node->children[i]->children[j];
 							}
 						}
@@ -254,7 +263,8 @@ void btree_delete(struct btree *t, int x)
 
 						//на его место поместить крайний ключ из соседнего дерева
 						node->keys[i] = node->children[i-1]->keys[node->children[i-1]->num - 1];
-						node->children[i+1]->num -= 1;
+						//node->children[i+1]->num -= 1;
+						node->children[i-1]->num -= 1;
 					}
 					//btree_delete_from_node(node->children[i], x);
 				}
