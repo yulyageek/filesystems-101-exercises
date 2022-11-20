@@ -214,6 +214,9 @@ void btree_delete(struct btree *t, int x)
 		else{ //в узле нет ключа
 			//ключ содержится в i дочке
 			//struct node *dougther = node->children[i];
+			if(node->is_leaf){
+				return;
+			}
 			if(node->children[i]->num == L-1){
 				if((i > 0 && node->children[i-1]->num >= L) || (i < node->num && node->children[i+1]->num >= L)){
 					if (i < node->num && node->children[i+1]->num >= L) {
