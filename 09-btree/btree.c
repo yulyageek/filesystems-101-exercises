@@ -105,6 +105,9 @@ void btree_insert(struct btree *t, int x)
 			btree_insert_nonfull(node->children[i], x);
 		}
 	}
+	if(btree_contains(t, x)){
+		return;
+	}
 	struct node *root = t->root;
 	if(root->num == 2 * t->L - 1){
 		struct node *new_root = node_alloc(t->L);
