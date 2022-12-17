@@ -48,14 +48,49 @@ int dump_file(int img, const char *path, int out)
 		return ret;
 	}
 
-	ntfs_inode *inode = ntfs_pathname_to_inode(volume, NULL, path);
-	if (!inode) {
-		// запомнить errno
-		int ret = -errno;
-		// fprintf(stderr, "Error: %s\n", strerror(errno));
-		free(name);
-		ntfs_umount(volume, FALSE);
-		return ret;
+	// ntfs_inode *inode = ntfs_pathname_to_inode(volume, NULL, path);
+	// if (!inode) {
+	// 	// запомнить errno
+	// 	int ret = -errno;
+	// 	// fprintf(stderr, "Error: %s\n", strerror(errno));
+	// 	free(name);
+	// 	ntfs_umount(volume, FALSE);
+	// 	return ret;
+	// }
+	ntfs_inode *inode = NULL;
+
+	char* start = (char*)path;
+	char* end;
+	u32 entry_name_len;
+	char *rel_name = (char*) malloc(strlen(path));
+	while(1){
+		end = index(start, '/');
+		if (!end){
+			entry_name_len = path + strlen(path) - start;
+		} else {
+			entry_name_len = end - start + 1;
+		}
+		memcpy(rel_name, start, entry_name_len);
+		rel_name[entry_name_len] = '\0';
+		inode = ntfs_pathname_to_inode(volume, inode, rel_name);
+		if (!inode) {
+			// запомнить errno
+			int ret = -errno;
+			free(name);
+			// fprintf(stderr, "Error: %s\n", strerror(errno));
+			ntfs_umount(volume, FALSE);
+			return ret;
+		}
+		if(!end){
+			break;
+		}
+		if (!(inode->mrec->flags & MFT_RECORD_IS_DIRECTORY)){
+			free(name);
+			// fprintf(stderr, "Error: %s\n", strerror(errno));
+			ntfs_umount(volume, FALSE);
+			return -ENOTDIR;
+		}
+		start = end + 1;
 	}
 
 	//ntfs_attr *ntfs_attr_open(ntfs_inode *ni, const ATTR_TYPES type, ntfschar *name, u32 name_len);
