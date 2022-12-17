@@ -26,6 +26,8 @@ __attribute__((destructor)) static void free_all(void){
 int read_direct_block(int img, __le32 block_nr, fuse_fill_dir_t filler, void *buf){
 	__u32 offset = block_nr * block_size;
 	struct ext2_dir_entry_2 entry;
+
+
 	struct stat stbuf = {};
 	while(1){
 		ssize_t len = pread(img, &entry, sizeof(entry), offset);
