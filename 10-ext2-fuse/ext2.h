@@ -6,6 +6,7 @@
 #define SUPERBLOCK_OFFSET 1024
 #define MAX_LEN 255
 
+#define EXT2_FT 0
 #define EXT2_FT_REG_FILE 1
 #define EXT2_FT_DIR 2
 

@@ -15,13 +15,16 @@ int get_inode_nr(int img, const char *path){
 	char entry_name[MAX_LEN];
 	__u8 entry_type;
 	int inode_nr = 2; //root_inode
+	if(strlen(path) == 1){
+		return 2;
+	}
 	char* start = (char*)path + 1;
 	char* end;
 	int entry_name_len;
 	while(1){
 		end = index(start, '/');
 		if(end == NULL){
-			entry_type = EXT2_FT_REG_FILE;
+			entry_type = EXT2_FT;
 			entry_name_len = path + strlen(path) - start;
 		} else{
 			entry_type = EXT2_FT_DIR;

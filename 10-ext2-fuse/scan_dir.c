@@ -42,7 +42,7 @@ int scan_direct_block(int img, __le32 block_nr){
 		}
 		entry_name[name_len] = '\0';
 		if(!strcmp(entry_name, canon_entry_name)){
-			if(entry.file_type == entry_type){
+			if(entry.file_type == entry_type || entry_type == EXT2_FT){
 				return entry.inode;
 			}
 			if(entry_type == EXT2_FT_DIR){
