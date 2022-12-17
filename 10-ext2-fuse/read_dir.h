@@ -1,4 +1,7 @@
-#pragma once
+#ifndef READ_DIR_H
+#define READ_DIR_H
+
+#include <fuse.h>
 
 /**
    Implement this function to parse the content of an inode @inode_nr
@@ -20,3 +23,5 @@ int dump_dir(int img, int inode_nr, fuse_fill_dir_t filler, void *buf);
    @name is the name (NULL-terminated) of the entry.
  */
 // void report_file(int inode_nr, char type, const char *name);
+
+#endif

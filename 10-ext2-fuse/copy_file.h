@@ -1,5 +1,5 @@
-#pragma once
-
+#ifndef COPY_FILE_H
+#define COPY_FILE_H
 /**
    Implement this function to copy the content of an inode @inode_nr
    to a file descriptor @out. @img is a file descriptor of an open
@@ -11,3 +11,5 @@
    a read or a write, return -errno.
 */
 int copy_file(int img, int inode_nr, char* out);
+
+#endif

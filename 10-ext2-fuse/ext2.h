@@ -1,4 +1,5 @@
-#pragma once
+#ifndef EXT2_H
+#define EXT2_H
 
 #include <linux/types.h>
 
@@ -165,3 +166,5 @@ struct ext2_dir_entry_2 {
 
 int read_inode(int img, struct ext2_inode *inode, int inode_nr);
 int get_inode_nr(int img, const char *path);
+
+#endif

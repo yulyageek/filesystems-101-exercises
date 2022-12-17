@@ -6,7 +6,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <linux/types.h>
-#include <fuse.h>
+#include <read_dir.h>
 
 static char* block_buf = NULL;
 static __le32* single_inderect_block_buf = NULL;
@@ -14,7 +14,7 @@ static __le32* double_inderect_block_buf = NULL;
 char entry_name[MAX_LEN];
 static __u32 block_size;
 
-__attribute__((destructor)) void free_all(void){
+__attribute__((destructor)) static void free_all(void){
 	if (block_buf != NULL)
 		free(block_buf);
 	if(single_inderect_block_buf != NULL)

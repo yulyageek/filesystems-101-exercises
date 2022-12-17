@@ -1,4 +1,6 @@
-#pragma once
+#ifndef SOLUTION_H
+#define SOLUTION_H
+
 
 #include <unistd.h>
 
@@ -9,3 +11,5 @@
    Any attempt write to the FS must report EROFS.
 */
 int ext2fuse(int img, const char *mntp);
+
+#endif

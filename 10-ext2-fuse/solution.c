@@ -8,13 +8,14 @@
 
 #include <fuse.h>
 #include <copy_file.h>
-#include <read_dir.c>
+#include <read_dir.h>
 #include <ext2.h>
 
 static int ext2_img;
 
-static void *ext2_init(struct fuse_conn_info *conn)
+static void *ext2_init(struct fuse_conn_info *conn, struct fuse_config * cfg)
 {
+        (void) cfg;
         (void) conn;
         return NULL;
 }
@@ -47,8 +48,9 @@ static int ext2_open(const char *path, struct fuse_file_info *ffi)
 	return 0;
 }
 
-static int ext2_getattr(const char *path, struct stat *stbuf)
+static int ext2_getattr(const char *path, struct stat *stbuf, struct fuse_file_info *fi)
 {
+        (void) fi;
         memset(stbuf, 0, sizeof(struct stat));
         int ret = get_inode_nr(ext2_img, path);
         if (ret < 0){
@@ -83,11 +85,12 @@ static int ext2_read(const char *path, char *buf, size_t size, off_t offset, str
 }
 
 static int ext2_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
-                         off_t offset, struct fuse_file_info *fi
-                         /*enum fuse_readdir_flags flags*/)
+                         off_t offset, struct fuse_file_info *fi,
+                         enum fuse_readdir_flags flags)
 {
         (void) offset;
         (void) fi;
+        (void) flags;
         int inode_nr = get_inode_nr(ext2_img, path);
         if (inode_nr < 0){
                 return inode_nr;
