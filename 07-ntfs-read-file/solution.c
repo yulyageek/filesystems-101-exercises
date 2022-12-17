@@ -43,7 +43,7 @@ int dump_file(int img, const char *path, int out)
 	ntfs_volume *volume = ntfs_mount(name, NTFS_MNT_RDONLY);
 	if (!volume){
 		free(name);
-		fprintf(stderr, "Error: %s\n", strerror(errno));
+		// fprintf(stderr, "Error: %s\n", strerror(errno));
 		return -errno;
 	}
 
@@ -52,6 +52,7 @@ int dump_file(int img, const char *path, int out)
 	if (!inode) {
 		free(name);
 		// fprintf(stderr, "Error: %s\n", strerror(errno));
+		ntfs_umount(volume, FALSE);
 		return -errno;
 	}
 
@@ -59,6 +60,8 @@ int dump_file(int img, const char *path, int out)
 	ntfs_attr *attr = ntfs_attr_open(inode, AT_DATA, NULL, 0);
 	if (!attr) {
 		free(name);
+		ntfs_inode_close(inode);
+		ntfs_umount(volume, FALSE);
 		return -errno;
 	}
 
@@ -71,6 +74,9 @@ int dump_file(int img, const char *path, int out)
 		len = ntfs_attr_pread(attr, offset, BUF_SIZE, buffer);
 		if (len == -1) {
 			// fprintf(stderr, "read %ld\n", offset);
+			ntfs_attr_close(attr);
+			ntfs_inode_close(inode);
+			ntfs_umount(volume, FALSE);
 			free(name);
 			return -errno;
 		}
@@ -79,6 +85,9 @@ int dump_file(int img, const char *path, int out)
 
 		if (write(out, buffer, len) < len) {
 			// fprintf(stderr, "read %ld\n", offset);
+			ntfs_attr_close(attr);
+			ntfs_inode_close(inode);
+			ntfs_umount(volume, FALSE);
 			free(name);
 			return -errno;
 		}
