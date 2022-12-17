@@ -26,6 +26,7 @@ __attribute__((destructor)) static void free_all(void){
 int read_direct_block(int img, __le32 block_nr, fuse_fill_dir_t filler, void *buf){
 	__u32 offset = block_nr * block_size;
 	struct ext2_dir_entry_2 entry;
+	struct stat stbuf = {};
 	while(1){
 		ssize_t len = pread(img, &entry, sizeof(entry), offset);
 		if(len == -1){
@@ -40,15 +41,13 @@ int read_direct_block(int img, __le32 block_nr, fuse_fill_dir_t filler, void *bu
 			return 0;
 		}
 		entry_name[name_len] = '\0';
-		// if (entry.file_type == EXT2_FT_REG_FILE){
-		// 	//printf("%d f %s\n", entry.inode, entry_name);
-		// 	report_file(entry.inode, 'f', entry_name);
-		// }
-		// if (entry.file_type == EXT2_FT_DIR){
-		// 	//printf("%d d %s\n", entry.inode, entry_name);
-		// 	report_file(entry.inode, 'd', entry_name);
-		// }
-		filler(buf, entry_name, NULL, 0, 0);
+		if (entry.file_type == EXT2_FT_REG_FILE){
+			stbuf.st_mode = S_IFREG;
+		}
+		if (entry.file_type == EXT2_FT_DIR){
+			stbuf.st_mode = S_IFDIR;
+		}
+		filler(buf, entry_name, &stbuf, 0, 0);
 		if(entry.rec_len + offset == (block_nr+1) * block_size){
 			return 0;
 		}
