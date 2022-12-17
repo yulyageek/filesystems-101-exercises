@@ -12,6 +12,6 @@
    If a copy was successful, return 0. If an error occurred during
    a read or a write, return -errno.
 */
-int copy_file(int img, int inode_nr, char* out, off_t offset);
+int copy_file(int img, int inode_nr, char* out, size_t size, off_t offset);
 
 #endif

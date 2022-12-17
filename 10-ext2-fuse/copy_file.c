@@ -82,7 +82,7 @@ int copy_double_indirect_block(int img, char* out, __le32 block_nr, off_t offset
 	return 0;
 }
 
-int copy_file(int img, int inode_nr, char *out, off_t offset)
+int copy_file(int img, int inode_nr, char *out, size_t size, off_t offset)
 {
 	struct ext2_super_block  sb;
 	ssize_t len = pread(img, &sb, sizeof(sb), SUPERBLOCK_OFFSET);
@@ -109,7 +109,7 @@ int copy_file(int img, int inode_nr, char *out, off_t offset)
 		return -errno;
 	}
 
-	file_size = in.i_size;
+	file_size = (size < in.i_size?size:in.i_size);
 	block_buf = (char*)malloc(block_size);
 	int ret = 0;
 	//First 12 bloks direct

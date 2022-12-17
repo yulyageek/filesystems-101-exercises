@@ -58,7 +58,7 @@ static int ext2_getattr(const char *path, struct stat *stbuf, struct fuse_file_i
         }
         int inode_nr = ret;
         struct ext2_inode inode;
-        ret = read_inode(ext2_img, &inode, inode_nr);\
+        ret = read_inode(ext2_img, &inode, inode_nr);
         if (ret < 0){
                 return ret;
         }
@@ -78,7 +78,7 @@ static int ext2_read(const char *path, char *buf, size_t size, off_t offset, str
         if (inode < 0){
                 return inode;
         }
-        size = copy_file(ext2_img, inode, buf, offset);
+        size = copy_file(ext2_img, inode, buf, size, offset);
         return size;
 }
 
