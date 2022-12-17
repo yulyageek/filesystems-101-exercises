@@ -73,15 +73,13 @@ static int ext2_getattr(const char *path, struct stat *stbuf, struct fuse_file_i
 
 static int ext2_read(const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi)
 {
-        (void) buf;
-        (void) size;
-        (void) offset;
         (void) fi;
         int inode = get_inode_nr(ext2_img, path);
         if (inode < 0){
                 return inode;
         }
-        return copy_file(ext2_img, inode, buf);
+        size = copy_file(ext2_img, inode, buf, offset);
+        return size;
 }
 
 static int ext2_readdir(const char *path, void *buf, fuse_fill_dir_t filler,

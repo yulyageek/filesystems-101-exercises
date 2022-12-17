@@ -5,15 +5,13 @@
 #include <errno.h>
 #include <string.h>
 #include <stdlib.h>
-#include <linux/types.h>
-
 
 static char* block_buf = NULL;
 static __le32* single_inderect_block_buf = NULL;
 static __le32* double_inderect_block_buf = NULL;
 static __u32 block_size;
-static __u32 size;
-static __u32 offset = 0;
+static __u32 file_size;
+static __u32 file_offset = 0;
 
 __attribute__((destructor)) static void free_all(void){
 	if (block_buf != NULL)
@@ -24,7 +22,7 @@ __attribute__((destructor)) static void free_all(void){
 		free(double_inderect_block_buf);		
 }
 
-int copy_direct_block(int img, char* out, __le32 block_nr){
+int copy_direct_block(int img, char* out, __le32 block_nr, off_t offset){
 	if(block_nr == 0){
 		return 0;
 	}
@@ -33,16 +31,18 @@ int copy_direct_block(int img, char* out, __le32 block_nr){
 	if(len == -1){
 		return -errno;
 	}
-
-	memcpy(out, block_buf, ((__u32)len<size-offset?(__u32)len:size-offset));
-	// if(len < (int)block_size){
-	// 	return -errno;
-	// }
-	offset += len;
+	__u32 write_len = ((__u32)len<file_size-file_offset?(__u32)len:file_size-file_offset);
+	if (offset < write_len){
+		memcpy(out, block_buf + offset, write_len-offset);
+	} else {
+		offset -= write_len;
+	}
+	// memcpy(out, block_buf, ((__u32)len<file_size-file_offset?(__u32)len:file_size-file_offset));
+	file_offset += write_len;
 	return 0;
 }
 
-int copy_single_indirect_block(int img, char* out, __le32 block_nr){
+int copy_single_indirect_block(int img, char* out, __le32 block_nr, off_t offset){
 	if (block_nr == 0){
 		return 0;
 	}
@@ -54,7 +54,7 @@ int copy_single_indirect_block(int img, char* out, __le32 block_nr){
 	}
 
 	for(__u32 i=0; i < (__u32)(block_size / sizeof(__le32)); i++){
-		int ret = copy_direct_block(img, out, single_inderect_block_buf[i]);
+		int ret = copy_direct_block(img, out, single_inderect_block_buf[i], offset);
 		if(ret < 0){
 			return ret;
 		}
@@ -62,7 +62,7 @@ int copy_single_indirect_block(int img, char* out, __le32 block_nr){
 	return 0;
 }
 
-int copy_double_indirect_block(int img, char* out, __le32 block_nr){
+int copy_double_indirect_block(int img, char* out, __le32 block_nr, off_t offset){
 	if (block_nr == 0){
 		return 0;
 	}
@@ -74,7 +74,7 @@ int copy_double_indirect_block(int img, char* out, __le32 block_nr){
 	}
 
 	for(__u32 i=0; i < (__u32)(block_size / sizeof(__le32)); i++){
-		int ret = copy_single_indirect_block(img, out, double_inderect_block_buf[i]);
+		int ret = copy_single_indirect_block(img, out, double_inderect_block_buf[i], offset);
 		if(ret < 0){
 			return ret;
 		}
@@ -82,7 +82,7 @@ int copy_double_indirect_block(int img, char* out, __le32 block_nr){
 	return 0;
 }
 
-int copy_file(int img, int inode_nr, char *out)
+int copy_file(int img, int inode_nr, char *out, off_t offset)
 {
 	struct ext2_super_block  sb;
 	ssize_t len = pread(img, &sb, sizeof(sb), SUPERBLOCK_OFFSET);
@@ -109,27 +109,27 @@ int copy_file(int img, int inode_nr, char *out)
 		return -errno;
 	}
 
-	size = in.i_size;
+	file_size = in.i_size;
 	block_buf = (char*)malloc(block_size);
 	int ret = 0;
 	//First 12 bloks direct
 	for(int i = 0; i < 12; i++){
-		ret = copy_direct_block(img, out, in.i_block[i]);
+		ret = copy_direct_block(img, out, in.i_block[i], offset);
 		if(ret < 0){
 			return ret;
 		}
 	}
 	single_inderect_block_buf = (__le32*)malloc(block_size);
 	//13th block is single-indirect
-	ret = copy_single_indirect_block(img, out, in.i_block[12]);
+	ret = copy_single_indirect_block(img, out, in.i_block[12], offset);
 	if(ret < 0){
 		return ret;
 	}
 	//14th block is single-indirect
 	double_inderect_block_buf = (__le32*)malloc(block_size);
-	ret = copy_double_indirect_block(img, out, in.i_block[13]);
+	ret = copy_double_indirect_block(img, out, in.i_block[13], offset);
 	if(ret < 0){
 		return ret;
 	}
-	return 0;
+	return file_size;
 }
